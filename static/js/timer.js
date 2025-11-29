@@ -1,6 +1,7 @@
 /**
  * ポモドーロタイマー JavaScript
  * 
+ * タイマーロジック、状態管理、ゲーミフィケーション機能を担当
  * タイマーロジック、状態管理、localStorage保存、視覚エフェクトを担当
  */
 
@@ -161,6 +162,17 @@ class PomodoroTimer {
         this.completedPomodoros = 0;
         this.currentColorClass = 'color-blue';
         
+        // ゲーミフィケーションデータ
+        this.gamificationData = {
+            level: 1,
+            totalXp: 0,
+            xpProgress: { xp_in_current_level: 0, xp_needed_for_next: 100, progress_percent: 0 },
+            streakDays: 0,
+            badges: [],
+            weeklyStats: null,
+            monthlyStats: null
+        };
+        
         // 進捗データ（localStorageから復元）
         this.loadProgress();
         
@@ -282,6 +294,12 @@ class PomodoroTimer {
             if (response.ok) {
                 const data = await response.json();
                 this.updateProgressUI(data.progress);
+                
+                // ゲーミフィケーションデータを更新
+                if (data.gamification) {
+                    this.handleGamificationUpdate(data.gamification);
+                }
+                
                 this.saveProgress();
             }
         } catch (error) {
@@ -289,6 +307,80 @@ class PomodoroTimer {
             // ローカルでも記録
             this.saveProgress();
         }
+    }
+    
+    /**
+     * ゲーミフィケーション更新を処理
+     */
+    handleGamificationUpdate(gamification) {
+        // XP獲得通知を表示
+        this.showXpNotification(gamification.xp_earned);
+        
+        // レベルアップチェック
+        const oldLevel = this.gamificationData.level;
+        this.gamificationData.level = gamification.level;
+        this.gamificationData.totalXp = gamification.total_xp;
+        this.gamificationData.streakDays = gamification.streak_days;
+        
+        if (gamification.level > oldLevel) {
+            this.showLevelUpNotification(gamification.level);
+        }
+        
+        // 新規バッジ通知
+        if (gamification.new_badges && gamification.new_badges.length > 0) {
+            gamification.new_badges.forEach(badge => {
+                this.showBadgeNotification(badge);
+                this.gamificationData.badges.push(badge);
+            });
+        }
+        
+        // UIを更新
+        this.updateGamificationUI();
+    }
+    
+    /**
+     * XP獲得通知を表示
+     */
+    showXpNotification(xp) {
+        const notification = document.getElementById('xpNotification');
+        notification.querySelector('.xp-amount').textContent = `+${xp} XP`;
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 2000);
+    }
+    
+    /**
+     * レベルアップ通知を表示
+     */
+    showLevelUpNotification(level) {
+        const notification = document.getElementById('badgeNotification');
+        notification.querySelector('.badge-icon').textContent = '🎉';
+        notification.querySelector('.badge-message').innerHTML = 
+            `おめでとうございます！<br><span class="badge-name">レベル ${level}</span> に到達しました！`;
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+    
+    /**
+     * バッジ獲得通知を表示
+     */
+    showBadgeNotification(badge) {
+        setTimeout(() => {
+            const notification = document.getElementById('badgeNotification');
+            notification.querySelector('.badge-icon').textContent = badge.icon;
+            notification.querySelector('.badge-message').innerHTML = 
+                `新しいバッジを獲得！<br><span class="badge-name">${badge.name}</span>`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }, 2500); // XP通知の後に表示
     }
     
     /**
@@ -376,13 +468,85 @@ class PomodoroTimer {
     }
     
     /**
+     * ゲーミフィケーションUIを更新
+     */
+    updateGamificationUI() {
+        // レベル表示
+        document.getElementById('levelDisplay').textContent = this.gamificationData.level;
+        
+        // XPバー
+        const xpProgress = this.gamificationData.xpProgress || { progress_percent: 0, xp_in_current_level: 0, xp_needed_for_next: 100 };
+        document.getElementById('xpFill').style.width = `${xpProgress.progress_percent}%`;
+        document.getElementById('xpText').textContent = 
+            `${xpProgress.xp_in_current_level} / ${xpProgress.xp_needed_for_next} XP`;
+        
+        // ストリーク表示
+        document.getElementById('streakCount').textContent = this.gamificationData.streakDays;
+        
+        // バッジ表示
+        this.updateBadgesUI();
+        
+        // 週間統計
+        if (this.gamificationData.weeklyStats) {
+            this.updateWeeklyStatsUI();
+        }
+    }
+    
+    /**
+     * バッジUIを更新
+     */
+    updateBadgesUI() {
+        const container = document.getElementById('badgesContainer');
+        
+        if (this.gamificationData.badges.length === 0) {
+            container.innerHTML = '<div class="no-badges">バッジはまだありません</div>';
+            return;
+        }
+        
+        container.innerHTML = this.gamificationData.badges.map(badge => `
+            <div class="badge-item" title="${badge.description}">
+                <span class="icon">${badge.icon}</span>
+                <span class="name">${badge.name}</span>
+            </div>
+        `).join('');
+    }
+    
+    /**
+     * 週間統計UIを更新
+     */
+    updateWeeklyStatsUI() {
+        const stats = this.gamificationData.weeklyStats;
+        const chartContainer = document.getElementById('weeklyChart');
+        
+        // 最大値を計算（最小5）
+        const maxPomodoros = Math.max(5, ...stats.daily_data.map(d => d.completed_pomodoros));
+        
+        chartContainer.innerHTML = stats.daily_data.map(day => {
+            const heightPercent = (day.completed_pomodoros / maxPomodoros) * 100;
+            return `
+                <div class="chart-bar">
+                    <div class="bar-container">
+                        <div class="bar-fill" style="height: ${heightPercent}%"></div>
+                    </div>
+                    <span class="bar-label">${day.day_name}</span>
+                </div>
+            `;
+        }).join('');
+        
+        // 統計サマリー
+        document.getElementById('weeklyPomodoros').textContent = stats.total_pomodoros;
+        document.getElementById('avgFocusTime').textContent = `${stats.avg_focus_minutes_per_day}分`;
+    }
+    
+    /**
      * 進捗をlocalStorageに保存
      */
     saveProgress() {
         const today = new Date().toISOString().split('T')[0];
         const progress = {
             date: today,
-            completedPomodoros: this.completedPomodoros
+            completedPomodoros: this.completedPomodoros,
+            gamification: this.gamificationData
         };
         localStorage.setItem('pomodoroProgress', JSON.stringify(progress));
     }
@@ -398,6 +562,9 @@ class PomodoroTimer {
             
             if (progress.date === today) {
                 this.completedPomodoros = progress.completedPomodoros || 0;
+                if (progress.gamification) {
+                    this.gamificationData = { ...this.gamificationData, ...progress.gamification };
+                }
             }
         }
     }
@@ -414,6 +581,30 @@ class PomodoroTimer {
             }
         } catch (error) {
             console.error('進捗の取得に失敗:', error);
+        }
+    }
+    
+    /**
+     * サーバーからゲーミフィケーションデータを取得
+     */
+    async fetchGamification() {
+        try {
+            const response = await fetch('/api/gamification');
+            if (response.ok) {
+                const data = await response.json();
+                this.gamificationData = {
+                    level: data.level,
+                    totalXp: data.total_xp,
+                    xpProgress: data.xp_progress,
+                    streakDays: data.streak_days,
+                    badges: data.badges,
+                    weeklyStats: data.weekly_stats,
+                    monthlyStats: data.monthly_stats
+                };
+                this.updateGamificationUI();
+            }
+        } catch (error) {
+            console.error('ゲーミフィケーションデータの取得に失敗:', error);
         }
     }
 }
@@ -441,6 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 初期UI更新
     timer.updateUI();
     timer.fetchProgress();
+    timer.fetchGamification();
     
     // 通知許可をリクエスト
     if ('Notification' in window && Notification.permission === 'default') {
