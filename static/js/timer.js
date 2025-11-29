@@ -35,6 +35,9 @@ const COLOR_THRESHOLDS = {
     RED: 0      // 20%未満残り → 赤
 };
 
+// カラークラス定数
+const COLOR_CLASSES = ['color-blue', 'color-yellow', 'color-red'];
+
 // ========================================
 // 純粋関数（テスト可能）
 // ========================================
@@ -106,8 +109,10 @@ function getProgressColorClass(remaining, total) {
  * @param {number} count - パーティクル数
  */
 function createParticles(container, count = 15) {
-    // 既存のパーティクルをクリア
-    container.innerHTML = '';
+    // 既存のパーティクルをクリア (効率的に子要素を削除)
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
     
     for (let i = 0; i < count; i++) {
         const particle = document.createElement('div');
@@ -322,11 +327,11 @@ class PomodoroTimer {
         
         if (newColorClass !== this.currentColorClass) {
             // プログレスリングのカラー更新
-            progressRing.classList.remove('color-blue', 'color-yellow', 'color-red');
+            progressRing.classList.remove(...COLOR_CLASSES);
             progressRing.classList.add(newColorClass);
             
             // タイマー表示のカラー更新
-            timerDisplay.classList.remove('color-blue', 'color-yellow', 'color-red');
+            timerDisplay.classList.remove(...COLOR_CLASSES);
             timerDisplay.classList.add(newColorClass);
             
             this.currentColorClass = newColorClass;

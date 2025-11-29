@@ -1,5 +1,11 @@
 /* ポモドーロタイマー スタイルシート */
 
+:root {
+    /* 波紋エフェクトのサイズ変数 */
+    --ripple-start-size: 50px;
+    --ripple-end-size: 400px;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -80,13 +86,13 @@ body {
 
 @keyframes ripple-expand {
     0% {
-        width: 50px;
-        height: 50px;
+        width: var(--ripple-start-size);
+        height: var(--ripple-start-size);
         opacity: 0.8;
     }
     100% {
-        width: 400px;
-        height: 400px;
+        width: var(--ripple-end-size);
+        height: var(--ripple-end-size);
         opacity: 0;
     }
 }
@@ -342,6 +348,11 @@ body {
 
 /* レスポンシブ対応 */
 @media (max-width: 400px) {
+    :root {
+        --ripple-start-size: 30px;
+        --ripple-end-size: 250px;
+    }
+    
     .timer-display {
         font-size: 40px;
     }
@@ -349,19 +360,6 @@ body {
     .btn {
         padding: 10px 20px;
         font-size: 13px;
-    }
-    
-    @keyframes ripple-expand {
-        0% {
-            width: 30px;
-            height: 30px;
-            opacity: 0.8;
-        }
-        100% {
-            width: 250px;
-            height: 250px;
-            opacity: 0;
-        }
     }
 }
 
