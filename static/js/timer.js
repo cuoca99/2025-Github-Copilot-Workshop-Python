@@ -170,6 +170,50 @@ function toggleBackgroundEffects(show) {
 // 設定管理
 // ========================================
 
+// 有効な設定値の定義
+const VALID_SETTINGS = {
+    workDuration: [15, 25, 35, 45],
+    shortBreakDuration: [5, 10, 15],
+    theme: ['light', 'dark', 'focus']
+};
+
+/**
+ * 設定値を検証する
+ * @param {object} settings - 検証する設定オブジェクト
+ * @returns {object} 検証済みの設定オブジェクト
+ */
+function validateSettings(settings) {
+    const validated = {};
+    
+    // 作業時間の検証
+    if (VALID_SETTINGS.workDuration.includes(settings.workDuration)) {
+        validated.workDuration = settings.workDuration;
+    }
+    
+    // 休憩時間の検証
+    if (VALID_SETTINGS.shortBreakDuration.includes(settings.shortBreakDuration)) {
+        validated.shortBreakDuration = settings.shortBreakDuration;
+    }
+    
+    // テーマの検証
+    if (VALID_SETTINGS.theme.includes(settings.theme)) {
+        validated.theme = settings.theme;
+    }
+    
+    // サウンド設定の検証（boolean型のみ）
+    if (typeof settings.soundStart === 'boolean') {
+        validated.soundStart = settings.soundStart;
+    }
+    if (typeof settings.soundEnd === 'boolean') {
+        validated.soundEnd = settings.soundEnd;
+    }
+    if (typeof settings.soundTick === 'boolean') {
+        validated.soundTick = settings.soundTick;
+    }
+    
+    return validated;
+}
+
 /**
  * 設定をlocalStorageから読み込み
  */
@@ -178,7 +222,9 @@ function loadSettings() {
     if (saved) {
         try {
             const settings = JSON.parse(saved);
-            Object.assign(USER_SETTINGS, settings);
+            // 設定値を検証してから適用
+            const validatedSettings = validateSettings(settings);
+            Object.assign(USER_SETTINGS, validatedSettings);
             applySettings();
         } catch (e) {
             console.error('設定の読み込みに失敗:', e);
@@ -336,6 +382,29 @@ function initSettings() {
 // サウンド機能
 // ========================================
 
+// グローバルAudioContextインスタンス（再利用のため）
+let audioContext = null;
+
+/**
+ * AudioContextを取得または作成
+ * @returns {AudioContext|null} AudioContextインスタンス
+ */
+function getAudioContext() {
+    if (!audioContext) {
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.error('AudioContextの作成に失敗:', e);
+            return null;
+        }
+    }
+    // サスペンド状態の場合は再開
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    return audioContext;
+}
+
 /**
  * Web Audio APIを使用してビープ音を生成
  * @param {number} frequency - 周波数（Hz）
@@ -344,21 +413,23 @@ function initSettings() {
  */
 function playBeep(frequency = 440, duration = 200, type = 'sine') {
     try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
         
         oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+        gainNode.connect(ctx.destination);
         
         oscillator.frequency.value = frequency;
         oscillator.type = type;
         
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000);
         
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + duration / 1000);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + duration / 1000);
     } catch (e) {
         console.error('サウンド再生に失敗:', e);
     }
