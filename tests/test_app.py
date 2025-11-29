@@ -68,6 +68,22 @@ class TestProgressAPI:
         assert 'progress' in data
         assert data['progress']['completed_pomodoros'] >= 1
     
+    def test_complete_pomodoro_returns_gamification(self, client):
+        """POST /api/progress/complete がゲーミフィケーションデータも返すこと"""
+        response = client.post(
+            '/api/progress/complete',
+            data=json.dumps({'focus_seconds': 25 * 60}),
+            content_type='application/json'
+        )
+        
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        
+        assert 'gamification' in data
+        assert 'xp_earned' in data['gamification']
+        assert 'level' in data['gamification']
+        assert 'streak_days' in data['gamification']
+    
     def test_complete_pomodoro_default_duration(self, client):
         """POST /api/progress/complete がデフォルトで25分を使用すること"""
         response = client.post(
@@ -103,6 +119,51 @@ class TestProgressAPI:
         assert data['completed_pomodoros'] == 0
 
 
+class TestGamificationAPI:
+    """ゲーミフィケーションAPI のテスト"""
+    
+    def test_get_gamification(self, client):
+        """GET /api/gamification がゲーミフィケーションデータを返すこと"""
+        response = client.get('/api/gamification')
+        
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        
+        assert 'level' in data
+        assert 'total_xp' in data
+        assert 'xp_progress' in data
+        assert 'streak_days' in data
+        assert 'badges' in data
+        assert 'weekly_stats' in data
+        assert 'monthly_stats' in data
+    
+    def test_get_weekly_stats(self, client):
+        """GET /api/gamification/weekly が週間統計を返すこと"""
+        response = client.get('/api/gamification/weekly')
+        
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        
+        assert 'week_start' in data
+        assert 'daily_data' in data
+        assert 'total_pomodoros' in data
+        assert 'total_focus_minutes' in data
+        assert 'avg_pomodoros_per_day' in data
+    
+    def test_get_monthly_stats(self, client):
+        """GET /api/gamification/monthly が月間統計を返すこと"""
+        response = client.get('/api/gamification/monthly')
+        
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        
+        assert 'month' in data
+        assert 'total_pomodoros' in data
+        assert 'total_focus_minutes' in data
+        assert 'active_days' in data
+        assert 'completion_rate' in data
+
+
 class TestAPIContentType:
     """API レスポンスのContent-Typeテスト"""
     
@@ -118,4 +179,9 @@ class TestAPIContentType:
             data=json.dumps({}),
             content_type='application/json'
         )
+        assert 'application/json' in response.content_type
+    
+    def test_gamification_returns_json(self, client):
+        """ゲーミフィケーションAPIがJSONを返すこと"""
+        response = client.get('/api/gamification')
         assert 'application/json' in response.content_type

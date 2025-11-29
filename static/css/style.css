@@ -18,7 +18,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 360px;
+    max-width: 400px;
 }
 
 /* タイマーカード */
@@ -164,17 +164,93 @@ body {
     background: #f5f3ff;
 }
 
+/* ゲーミフィケーションセクション */
+.gamification-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+    border-top: 1px solid #e5e7eb;
+}
+
+/* レベルセクション */
+.level-section {
+    flex: 1;
+}
+
+.level-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.level-badge {
+    font-size: 18px;
+    font-weight: 700;
+    color: #6366f1;
+}
+
+.xp-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.xp-text {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+/* ストリークセクション */
+.streak-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 16px;
+    border-left: 1px solid #d1d5db;
+    margin-left: 16px;
+}
+
+.streak-icon {
+    font-size: 24px;
+}
+
+.streak-info {
+    text-align: center;
+}
+
+.streak-count {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f59e0b;
+}
+
+.streak-label {
+    font-size: 10px;
+    color: #6b7280;
+}
+
 /* 進捗セクション */
 .progress-section {
     background: #f9fafb;
-    padding: 24px;
+    padding: 20px 24px;
     border-top: 1px solid #e5e7eb;
 }
 
 .progress-title {
     font-size: 14px;
     color: #374151;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .progress-stats {
@@ -196,6 +272,183 @@ body {
 .stat-label {
     font-size: 12px;
     color: #6b7280;
+}
+
+/* バッジセクション */
+.badges-section {
+    padding: 20px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.badges-title {
+    font-size: 14px;
+    color: #374151;
+    margin-bottom: 12px;
+}
+
+.badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.badge-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 16px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.badge-item:hover {
+    transform: scale(1.05);
+}
+
+.badge-item .icon {
+    font-size: 14px;
+}
+
+.badge-item .name {
+    color: #92400e;
+    font-weight: 500;
+}
+
+.no-badges {
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+/* 週間統計セクション */
+.stats-section {
+    padding: 20px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.stats-title {
+    font-size: 14px;
+    color: #374151;
+    margin-bottom: 16px;
+}
+
+.weekly-chart {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 80px;
+    margin-bottom: 16px;
+    padding: 0 8px;
+}
+
+.chart-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+}
+
+.bar-container {
+    width: 24px;
+    height: 60px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+}
+
+.bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, #6366f1, #8b5cf6);
+    border-radius: 4px;
+    transition: height 0.5s ease;
+}
+
+.bar-label {
+    font-size: 10px;
+    color: #6b7280;
+}
+
+.stats-summary {
+    display: flex;
+    justify-content: space-between;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-item .stat-name {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.stat-item .stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #6366f1;
+}
+
+/* XP獲得通知 */
+.xp-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 24px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    transform: translateX(200%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.xp-notification.show {
+    transform: translateX(0);
+}
+
+/* バッジ獲得通知 */
+.badge-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 1001;
+    transition: transform 0.3s ease;
+}
+
+.badge-notification.show {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.badge-notification .badge-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.badge-notification .badge-message {
+    font-size: 16px;
+    color: #374151;
+}
+
+.badge-notification .badge-name {
+    font-weight: 700;
+    color: #6366f1;
 }
 
 /* 状態別カラー */
@@ -220,5 +473,18 @@ body {
     .btn {
         padding: 10px 20px;
         font-size: 13px;
+    }
+    
+    .gamification-section {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .streak-section {
+        border-left: none;
+        margin-left: 0;
+        padding-left: 0;
+        border-top: 1px solid #d1d5db;
+        padding-top: 12px;
     }
 }
