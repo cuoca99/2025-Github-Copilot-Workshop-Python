@@ -36,6 +36,39 @@ class TestIndexRoute:
         assert 'timerDisplay' in html
         assert 'startBtn' in html
         assert 'resetBtn' in html
+    
+    def test_index_contains_settings_section(self, client):
+        """メインページに設定セクションが含まれること"""
+        response = client.get('/')
+        html = response.data.decode('utf-8')
+        
+        # 設定セクションの存在確認
+        assert 'settingsSection' in html
+        assert 'settingsHeader' in html
+        assert 'settingsContent' in html
+        
+        # 作業時間設定オプション
+        assert 'workDurationOptions' in html
+        assert 'data-value="15"' in html
+        assert 'data-value="25"' in html
+        assert 'data-value="35"' in html
+        assert 'data-value="45"' in html
+        
+        # 休憩時間設定オプション
+        assert 'shortBreakOptions' in html
+        assert 'data-value="5"' in html
+        assert 'data-value="10"' in html
+        
+        # テーマ設定オプション
+        assert 'themeOptions' in html
+        assert 'data-value="light"' in html
+        assert 'data-value="dark"' in html
+        assert 'data-value="focus"' in html
+        
+        # サウンド設定
+        assert 'soundStart' in html
+        assert 'soundEnd' in html
+        assert 'soundTick' in html
 
 
 class TestProgressAPI:

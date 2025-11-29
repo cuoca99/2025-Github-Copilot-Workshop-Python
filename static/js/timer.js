@@ -5,12 +5,30 @@
  * タイマーロジック、状態管理、localStorage保存、視覚エフェクトを担当
  */
 
-// タイマー設定（秒）
+// デフォルト設定
+const DEFAULT_CONFIG = {
+    WORK_DURATION: 25 * 60,        // 25分
+    SHORT_BREAK_DURATION: 5 * 60,  // 5分
+    LONG_BREAK_DURATION: 15 * 60,  // 15分
+    POMODOROS_UNTIL_LONG_BREAK: 4  // 長い休憩までのポモドーロ数
+};
+
+// 現在の設定（カスタマイズ可能）
 const CONFIG = {
     WORK_DURATION: 25 * 60,        // 25分
     SHORT_BREAK_DURATION: 5 * 60,  // 5分
     LONG_BREAK_DURATION: 15 * 60,  // 15分
     POMODOROS_UNTIL_LONG_BREAK: 4  // 長い休憩までのポモドーロ数
+};
+
+// ユーザー設定
+const USER_SETTINGS = {
+    workDuration: 25,        // 分
+    shortBreakDuration: 5,   // 分
+    theme: 'light',          // 'light', 'dark', 'focus'
+    soundStart: true,
+    soundEnd: true,
+    soundTick: false
 };
 
 // タイマー状態
@@ -149,6 +167,235 @@ function toggleBackgroundEffects(show) {
 }
 
 // ========================================
+// 設定管理
+// ========================================
+
+/**
+ * 設定をlocalStorageから読み込み
+ */
+function loadSettings() {
+    const saved = localStorage.getItem('pomodoroSettings');
+    if (saved) {
+        try {
+            const settings = JSON.parse(saved);
+            Object.assign(USER_SETTINGS, settings);
+            applySettings();
+        } catch (e) {
+            console.error('設定の読み込みに失敗:', e);
+        }
+    }
+}
+
+/**
+ * 設定をlocalStorageに保存
+ */
+function saveSettings() {
+    localStorage.setItem('pomodoroSettings', JSON.stringify(USER_SETTINGS));
+}
+
+/**
+ * 設定を適用
+ */
+function applySettings() {
+    // CONFIGを更新
+    CONFIG.WORK_DURATION = USER_SETTINGS.workDuration * 60;
+    CONFIG.SHORT_BREAK_DURATION = USER_SETTINGS.shortBreakDuration * 60;
+    
+    // テーマを適用
+    applyTheme(USER_SETTINGS.theme);
+    
+    // 設定UIを更新
+    updateSettingsUI();
+}
+
+/**
+ * テーマを適用
+ * @param {string} theme - 'light', 'dark', 'focus'
+ */
+function applyTheme(theme) {
+    const body = document.body;
+    // 既存のテーマクラスを削除
+    body.classList.remove('theme-light', 'theme-dark', 'theme-focus');
+    // 新しいテーマを適用（lightはデフォルトなのでクラス不要）
+    if (theme !== 'light') {
+        body.classList.add(`theme-${theme}`);
+    }
+}
+
+/**
+ * 設定UIを現在の設定値で更新
+ */
+function updateSettingsUI() {
+    // 作業時間ボタン
+    const workOptions = document.querySelectorAll('#workDurationOptions .option-btn');
+    workOptions.forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.value) === USER_SETTINGS.workDuration);
+    });
+    
+    // 休憩時間ボタン
+    const breakOptions = document.querySelectorAll('#shortBreakOptions .option-btn');
+    breakOptions.forEach(btn => {
+        btn.classList.toggle('active', parseInt(btn.dataset.value) === USER_SETTINGS.shortBreakDuration);
+    });
+    
+    // テーマボタン
+    const themeOptions = document.querySelectorAll('#themeOptions .option-btn');
+    themeOptions.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === USER_SETTINGS.theme);
+    });
+    
+    // サウンドチェックボックス
+    const soundStart = document.getElementById('soundStart');
+    const soundEnd = document.getElementById('soundEnd');
+    const soundTick = document.getElementById('soundTick');
+    
+    if (soundStart) soundStart.checked = USER_SETTINGS.soundStart;
+    if (soundEnd) soundEnd.checked = USER_SETTINGS.soundEnd;
+    if (soundTick) soundTick.checked = USER_SETTINGS.soundTick;
+}
+
+/**
+ * 設定セクションの初期化
+ */
+function initSettings() {
+    // 設定を読み込み
+    loadSettings();
+    
+    // 設定ヘッダーのクリックでトグル
+    const settingsHeader = document.getElementById('settingsHeader');
+    const settingsSection = document.getElementById('settingsSection');
+    
+    if (settingsHeader && settingsSection) {
+        settingsHeader.addEventListener('click', () => {
+            settingsSection.classList.toggle('collapsed');
+        });
+    }
+    
+    // 作業時間オプション
+    const workOptions = document.querySelectorAll('#workDurationOptions .option-btn');
+    workOptions.forEach(btn => {
+        btn.addEventListener('click', () => {
+            USER_SETTINGS.workDuration = parseInt(btn.dataset.value);
+            saveSettings();
+            applySettings();
+            // タイマーがIDLE状態ならリセット
+            if (window.pomodoroTimer && window.pomodoroTimer.state === TimerState.IDLE) {
+                window.pomodoroTimer.reset();
+            }
+        });
+    });
+    
+    // 休憩時間オプション
+    const breakOptions = document.querySelectorAll('#shortBreakOptions .option-btn');
+    breakOptions.forEach(btn => {
+        btn.addEventListener('click', () => {
+            USER_SETTINGS.shortBreakDuration = parseInt(btn.dataset.value);
+            saveSettings();
+            applySettings();
+        });
+    });
+    
+    // テーマオプション
+    const themeOptions = document.querySelectorAll('#themeOptions .option-btn');
+    themeOptions.forEach(btn => {
+        btn.addEventListener('click', () => {
+            USER_SETTINGS.theme = btn.dataset.value;
+            saveSettings();
+            applySettings();
+        });
+    });
+    
+    // サウンドトグル
+    const soundStart = document.getElementById('soundStart');
+    const soundEnd = document.getElementById('soundEnd');
+    const soundTick = document.getElementById('soundTick');
+    
+    if (soundStart) {
+        soundStart.addEventListener('change', () => {
+            USER_SETTINGS.soundStart = soundStart.checked;
+            saveSettings();
+        });
+    }
+    
+    if (soundEnd) {
+        soundEnd.addEventListener('change', () => {
+            USER_SETTINGS.soundEnd = soundEnd.checked;
+            saveSettings();
+        });
+    }
+    
+    if (soundTick) {
+        soundTick.addEventListener('change', () => {
+            USER_SETTINGS.soundTick = soundTick.checked;
+            saveSettings();
+        });
+    }
+}
+
+// ========================================
+// サウンド機能
+// ========================================
+
+/**
+ * Web Audio APIを使用してビープ音を生成
+ * @param {number} frequency - 周波数（Hz）
+ * @param {number} duration - 持続時間（ミリ秒）
+ * @param {string} type - 波形タイプ（'sine', 'square', 'sawtooth', 'triangle'）
+ */
+function playBeep(frequency = 440, duration = 200, type = 'sine') {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = type;
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration / 1000);
+    } catch (e) {
+        console.error('サウンド再生に失敗:', e);
+    }
+}
+
+/**
+ * タイマー開始音を再生
+ */
+function playStartSound() {
+    if (USER_SETTINGS.soundStart) {
+        playBeep(523, 150, 'sine');  // C5
+        setTimeout(() => playBeep(659, 150, 'sine'), 150);  // E5
+        setTimeout(() => playBeep(784, 200, 'sine'), 300);  // G5
+    }
+}
+
+/**
+ * タイマー終了音を再生
+ */
+function playEndSound() {
+    if (USER_SETTINGS.soundEnd) {
+        playBeep(784, 200, 'sine');  // G5
+        setTimeout(() => playBeep(659, 200, 'sine'), 200);  // E5
+        setTimeout(() => playBeep(523, 300, 'sine'), 400);  // C5
+    }
+}
+
+/**
+ * tick音を再生
+ */
+function playTickSound() {
+    if (USER_SETTINGS.soundTick) {
+        playBeep(1000, 30, 'square');
+    }
+}
+
+// ========================================
 // タイマークラス
 // ========================================
 
@@ -201,6 +448,9 @@ class PomodoroTimer {
             toggleBackgroundEffects(true);
         }
         
+        // 開始音を再生
+        playStartSound();
+        
         this.updateUI();
     }
     
@@ -240,6 +490,9 @@ class PomodoroTimer {
     tick() {
         this.remainingSeconds--;
         
+        // tick音を再生
+        playTickSound();
+        
         if (this.remainingSeconds <= 0) {
             this.completeSession();
         }
@@ -252,6 +505,9 @@ class PomodoroTimer {
      */
     async completeSession() {
         this.stop();
+        
+        // 終了音を再生
+        playEndSound();
         
         if (this.state === TimerState.WORK) {
             // ポモドーロ完了
@@ -614,7 +870,12 @@ class PomodoroTimer {
 // ========================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 設定を初期化
+    initSettings();
+    
     const timer = new PomodoroTimer();
+    // グローバルにアクセス可能にする（設定変更時に参照）
+    window.pomodoroTimer = timer;
     
     // ボタンイベント
     document.getElementById('startBtn').addEventListener('click', () => {
