@@ -6,7 +6,18 @@
     <title>ポモドーロタイマー</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
+<body class="effects-hidden">
+    <!-- パーティクル背景エフェクト -->
+    <div class="particles-container" id="particlesContainer"></div>
+    
+    <!-- 波紋エフェクト -->
+    <div class="ripple-container" id="rippleContainer">
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+    </div>
+    
     <div class="container">
         <div class="timer-card">
             <!-- タイトルバー -->

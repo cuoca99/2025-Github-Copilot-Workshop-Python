@@ -2,6 +2,7 @@
  * ポモドーロタイマー JavaScript
  * 
  * タイマーロジック、状態管理、ゲーミフィケーション機能を担当
+ * タイマーロジック、状態管理、localStorage保存、視覚エフェクトを担当
  */
 
 // タイマー設定（秒）
@@ -27,6 +28,16 @@ const STATE_LABELS = {
     [TimerState.SHORT_BREAK]: '短い休憩',
     [TimerState.LONG_BREAK]: '長い休憩'
 };
+
+// カラー設定（時間経過に応じた色遷移）
+const COLOR_THRESHOLDS = {
+    BLUE: 0.5,   // 50%以上残り → 青
+    YELLOW: 0.2, // 20%〜50%残り → 黄
+    RED: 0      // 20%未満残り → 赤
+};
+
+// カラークラス定数
+const COLOR_CLASSES = ['color-blue', 'color-yellow', 'color-red'];
 
 // ========================================
 // 純粋関数（テスト可能）
@@ -70,6 +81,73 @@ function calculateProgressOffset(remaining, total) {
     return circumference * (1 - progress);
 }
 
+/**
+ * 残り時間の割合に応じたカラークラスを取得
+ * @param {number} remaining - 残り秒数
+ * @param {number} total - 全体秒数
+ * @returns {string} カラークラス名 (color-blue, color-yellow, color-red)
+ */
+function getProgressColorClass(remaining, total) {
+    if (total <= 0) return 'color-blue';
+    const ratio = remaining / total;
+    
+    if (ratio > COLOR_THRESHOLDS.BLUE) {
+        return 'color-blue';
+    } else if (ratio > COLOR_THRESHOLDS.YELLOW) {
+        return 'color-yellow';
+    } else {
+        return 'color-red';
+    }
+}
+
+// ========================================
+// 視覚エフェクト管理
+// ========================================
+
+/**
+ * パーティクルエフェクトを生成
+ * @param {HTMLElement} container - パーティクルを追加するコンテナ
+ * @param {number} count - パーティクル数
+ */
+function createParticles(container, count = 15) {
+    // 既存のパーティクルをクリア (効率的に子要素を削除)
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+    
+    for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        // ランダムな位置とサイズを設定
+        const size = Math.random() * 10 + 5; // 5〜15px
+        const left = Math.random() * 100; // 0〜100%
+        const delay = Math.random() * 8; // 0〜8秒の遅延
+        const duration = Math.random() * 4 + 6; // 6〜10秒
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${left}%`;
+        particle.style.animationDelay = `${delay}s`;
+        particle.style.animationDuration = `${duration}s`;
+        
+        container.appendChild(particle);
+    }
+}
+
+/**
+ * 背景エフェクトの表示/非表示を切り替え
+ * @param {boolean} show - 表示する場合true
+ */
+function toggleBackgroundEffects(show) {
+    const body = document.body;
+    if (show) {
+        body.classList.remove('effects-hidden');
+    } else {
+        body.classList.add('effects-hidden');
+    }
+}
+
 // ========================================
 // タイマークラス
 // ========================================
@@ -82,6 +160,7 @@ class PomodoroTimer {
         this.isRunning = false;
         this.intervalId = null;
         this.completedPomodoros = 0;
+        this.currentColorClass = 'color-blue';
         
         // ゲーミフィケーションデータ
         this.gamificationData = {
@@ -96,6 +175,12 @@ class PomodoroTimer {
         
         // 進捗データ（localStorageから復元）
         this.loadProgress();
+        
+        // パーティクルエフェクトを初期化
+        const particlesContainer = document.getElementById('particlesContainer');
+        if (particlesContainer) {
+            createParticles(particlesContainer);
+        }
     }
     
     /**
@@ -110,6 +195,12 @@ class PomodoroTimer {
         
         this.isRunning = true;
         this.intervalId = setInterval(() => this.tick(), 1000);
+        
+        // 作業中のみ背景エフェクトを表示
+        if (this.state === TimerState.WORK) {
+            toggleBackgroundEffects(true);
+        }
+        
         this.updateUI();
     }
     
@@ -124,6 +215,10 @@ class PomodoroTimer {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
+        
+        // 背景エフェクトを非表示
+        toggleBackgroundEffects(false);
+        
         this.updateUI();
     }
     
@@ -135,6 +230,7 @@ class PomodoroTimer {
         this.state = TimerState.IDLE;
         this.remainingSeconds = CONFIG.WORK_DURATION;
         this.totalSeconds = CONFIG.WORK_DURATION;
+        this.currentColorClass = 'color-blue';
         this.updateUI();
     }
     
@@ -177,6 +273,7 @@ class PomodoroTimer {
         }
         
         this.remainingSeconds = this.totalSeconds;
+        this.currentColorClass = 'color-blue';
         this.updateUI();
         
         // 通知（ブラウザが対応している場合）
@@ -314,6 +411,38 @@ class PomodoroTimer {
         const progressRing = document.getElementById('progressRing');
         const offset = calculateProgressOffset(this.remainingSeconds, this.totalSeconds);
         progressRing.style.strokeDashoffset = offset;
+        
+        // カラー遷移（作業中のみ）
+        const newColorClass = this.state === TimerState.WORK 
+            ? getProgressColorClass(this.remainingSeconds, this.totalSeconds)
+            : 'color-blue';
+        
+        if (newColorClass !== this.currentColorClass) {
+            // プログレスリングのカラー更新
+            progressRing.classList.remove(...COLOR_CLASSES);
+            progressRing.classList.add(newColorClass);
+            
+            // タイマー表示のカラー更新
+            timerDisplay.classList.remove(...COLOR_CLASSES);
+            timerDisplay.classList.add(newColorClass);
+            
+            this.currentColorClass = newColorClass;
+        }
+        
+        // グロー効果（実行中のみ）
+        if (this.isRunning) {
+            progressRing.classList.add('glow');
+        } else {
+            progressRing.classList.remove('glow');
+        }
+        
+        // パルスアニメーション（残り20%未満で作業中の場合）
+        if (this.isRunning && this.state === TimerState.WORK && 
+            this.remainingSeconds / this.totalSeconds < COLOR_THRESHOLDS.YELLOW) {
+            timerDisplay.classList.add('pulse');
+        } else {
+            timerDisplay.classList.remove('pulse');
+        }
         
         // 状態ラベル
         const statusLabel = document.getElementById('statusLabel');
