@@ -639,3 +639,421 @@ body {
         transition: stroke-dashoffset 0.1s linear, stroke 0.1s ease;
     }
 }
+
+/* ========================================
+   設定セクション
+   ======================================== */
+.settings-section {
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.settings-header:hover {
+    background-color: #f9fafb;
+}
+
+.settings-title {
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+}
+
+.settings-toggle {
+    font-size: 12px;
+    color: #6b7280;
+    transition: transform 0.3s ease;
+}
+
+.settings-section.collapsed .settings-toggle {
+    transform: rotate(-90deg);
+}
+
+.settings-content {
+    padding: 0 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.settings-section.collapsed .settings-content {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.setting-label {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.setting-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.option-btn {
+    padding: 8px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.option-btn:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+}
+
+.option-btn.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #ffffff;
+}
+
+/* サウンドトグル */
+.sound-toggles {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.toggle-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #6366f1;
+    cursor: pointer;
+}
+
+.toggle-label {
+    font-size: 13px;
+    color: #374151;
+}
+
+/* ========================================
+   ダークテーマ
+   ======================================== */
+body.theme-dark {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+body.theme-dark .timer-card {
+    background: #1f2937;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+body.theme-dark .title-bar {
+    background: #374151;
+}
+
+body.theme-dark .main-content {
+    background: #1f2937;
+}
+
+body.theme-dark .status-label {
+    color: #d1d5db;
+}
+
+body.theme-dark .timer-display {
+    color: #f3f4f6;
+}
+
+body.theme-dark .progress-ring-bg {
+    stroke: #374151;
+}
+
+body.theme-dark .btn-secondary {
+    background: #374151;
+    color: #d1d5db;
+    border-color: #4b5563;
+}
+
+body.theme-dark .btn-secondary:hover {
+    background: #4b5563;
+}
+
+body.theme-dark .gamification-section {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-top-color: #374151;
+}
+
+body.theme-dark .level-badge {
+    color: #818cf8;
+}
+
+body.theme-dark .xp-bar {
+    background: #374151;
+}
+
+body.theme-dark .xp-text,
+body.theme-dark .streak-label {
+    color: #9ca3af;
+}
+
+body.theme-dark .progress-section {
+    background: #111827;
+    border-top-color: #374151;
+}
+
+body.theme-dark .progress-title,
+body.theme-dark .stat-label {
+    color: #9ca3af;
+}
+
+body.theme-dark .stat-value {
+    color: #818cf8;
+}
+
+body.theme-dark .badges-section {
+    background: #1f2937;
+    border-top-color: #374151;
+}
+
+body.theme-dark .badges-title {
+    color: #d1d5db;
+}
+
+body.theme-dark .badge-item {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+}
+
+body.theme-dark .badge-item .name {
+    color: #fbbf24;
+}
+
+body.theme-dark .no-badges {
+    color: #6b7280;
+}
+
+body.theme-dark .stats-section {
+    background: #111827;
+    border-top-color: #374151;
+}
+
+body.theme-dark .stats-title,
+body.theme-dark .stat-name {
+    color: #9ca3af;
+}
+
+body.theme-dark .bar-container {
+    background: #374151;
+}
+
+body.theme-dark .settings-section {
+    background: #1f2937;
+    border-top-color: #374151;
+}
+
+body.theme-dark .settings-header:hover {
+    background-color: #111827;
+}
+
+body.theme-dark .settings-title {
+    color: #d1d5db;
+}
+
+body.theme-dark .settings-toggle {
+    color: #9ca3af;
+}
+
+body.theme-dark .setting-label {
+    color: #9ca3af;
+}
+
+body.theme-dark .option-btn {
+    background: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+}
+
+body.theme-dark .option-btn:hover {
+    border-color: #818cf8;
+    color: #818cf8;
+}
+
+body.theme-dark .option-btn.active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #ffffff;
+}
+
+body.theme-dark .toggle-label {
+    color: #d1d5db;
+}
+
+body.theme-dark .particle {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+body.theme-dark .ripple {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ========================================
+   フォーカスモード（ミニマルUI）
+   ======================================== */
+body.theme-focus {
+    background: #0f0f0f;
+}
+
+body.theme-focus .timer-card {
+    background: transparent;
+    box-shadow: none;
+    max-width: 300px;
+}
+
+body.theme-focus .title-bar {
+    display: none;
+}
+
+body.theme-focus .main-content {
+    padding: 48px 24px;
+    background: transparent;
+}
+
+body.theme-focus .status-label {
+    color: #666666;
+    font-size: 14px;
+}
+
+body.theme-focus .timer-circle {
+    width: 250px;
+    height: 250px;
+}
+
+body.theme-focus .timer-display {
+    font-size: 64px;
+    color: #ffffff;
+    font-weight: 300;
+}
+
+body.theme-focus .progress-ring-bg {
+    stroke: #333333;
+    stroke-width: 4;
+}
+
+body.theme-focus .progress-ring-fill {
+    stroke: #ffffff;
+    stroke-width: 4;
+}
+
+body.theme-focus .controls {
+    margin-top: 16px;
+}
+
+body.theme-focus .btn {
+    background: transparent;
+    border: 1px solid #444444;
+    color: #888888;
+    padding: 10px 24px;
+    font-size: 13px;
+}
+
+body.theme-focus .btn:hover {
+    border-color: #666666;
+    color: #aaaaaa;
+}
+
+body.theme-focus .btn-primary.running {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: transparent;
+}
+
+body.theme-focus .gamification-section,
+body.theme-focus .progress-section,
+body.theme-focus .badges-section,
+body.theme-focus .stats-section {
+    display: none;
+}
+
+body.theme-focus .settings-section {
+    background: transparent;
+    border-top-color: #333333;
+}
+
+body.theme-focus .settings-header:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.theme-focus .settings-title {
+    color: #888888;
+}
+
+body.theme-focus .settings-toggle {
+    color: #666666;
+}
+
+body.theme-focus .setting-label {
+    color: #666666;
+}
+
+body.theme-focus .option-btn {
+    background: transparent;
+    border-color: #444444;
+    color: #888888;
+}
+
+body.theme-focus .option-btn:hover {
+    border-color: #666666;
+    color: #aaaaaa;
+}
+
+body.theme-focus .option-btn.active {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #0f0f0f;
+}
+
+body.theme-focus .toggle-label {
+    color: #888888;
+}
+
+body.theme-focus .particles-container,
+body.theme-focus .ripple-container {
+    display: none;
+}
+
+/* フォーカスモードのレスポンシブ対応 */
+@media (max-width: 400px) {
+    body.theme-focus .timer-circle {
+        width: 200px;
+        height: 200px;
+    }
+    
+    body.theme-focus .timer-display {
+        font-size: 48px;
+    }
+}
